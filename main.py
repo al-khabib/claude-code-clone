@@ -8,8 +8,11 @@ class ClaudeAgent:
 
     # func to get user input
     def get_message(self):
-        user_input = input()
-        return user_input, bool(user_input)
+        try:
+            user_input = input()
+            return user_input, bool(user_input)
+        except EOFError as e:
+            return "", str(e)
 
     # here we will have a loop that gets a task and keeps running until the task is complete
     def run(self):
