@@ -2,12 +2,14 @@ import anthropic
 from anthropic.types import ToolParam
 from termcolor import colored
 
+from tools import read_file_definition
+
 
 # create ClaudeAgent class
 class ClaudeAgent:
     def __init__(self):
         self.client = anthropic.Anthropic()
-        self.tools = []
+        self.tools = [read_file_definition]
 
     # func to get user input
     def get_message(self):
@@ -21,20 +23,22 @@ class ClaudeAgent:
     def run(self):
         print("Hello! I'm Claude, your AI assistant. How can I help you today?")
         conversation = []
+        read_user_input = True
 
         while True:
-            print(colored("You: ", "blue"), end="")
+            if read_user_input:
+                print(colored("You: ", "blue"), end="")
 
-            user_input, ok = self.get_message()
-            if not ok:
-                break
+                user_input, ok = self.get_message()
+                if not ok:
+                    break
 
-            # add user input to conversation
-            user_msg = {
-                "role": "user",
-                "content": [{"type": "text", "text": user_input}],
-            }
-            conversation.append(user_msg)
+                # add user input to conversation
+                user_msg = {
+                    "role": "user",
+                    "content": [{"type": "text", "text": user_input}],
+                }
+                conversation.append(user_msg)
 
             # send the context(conversation history) and the new user message to LLM model, and get the response
             message = self.run_inference(conversation)
