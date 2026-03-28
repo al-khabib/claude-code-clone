@@ -1,10 +1,13 @@
 import anthropic
+from anthropic.types import ToolParam
 from termcolor import colored
+
 
 # create ClaudeAgent class
 class ClaudeAgent:
     def __init__(self):
         self.client = anthropic.Anthropic()
+        self.tools = []
 
     # func to get user input
     def get_message(self):
@@ -16,42 +19,55 @@ class ClaudeAgent:
 
     # here we will have a loop that gets a task and keeps running until the task is complete
     def run(self):
-        print("Hello! I'm Claude, your AI assistant. How can I help you today?")    
+        print("Hello! I'm Claude, your AI assistant. How can I help you today?")
         conversation = []
 
         while True:
-            print(colored('You: ', 'blue'), end='')
-            
+            print(colored("You: ", "blue"), end="")
+
             user_input, ok = self.get_message()
             if not ok:
                 break
-            
+
             # add user input to conversation
             user_msg = {
                 "role": "user",
-                "content": [{"type": 'text', "text": user_input}]
+                "content": [{"type": "text", "text": user_input}],
             }
             conversation.append(user_msg)
 
             # send the context(conversation history) and the new user message to LLM model, and get the response
             message = self.run_inference(conversation)
-            
+
             # add the response to conversation
-            conversation.append({'role': 'assistant', 'content': message.content})
+            conversation.append({"role": "assistant", "content": message.content})
 
             for content in message.content:
-                if content.type == 'text':
-                    print(colored("Claude: ", 'yellow'), f" {content.text}")
-    
+                if content.type == "text":
+                    print(colored("Claude: ", "yellow"), f" {content.text}")
+
     # call Anthropic model and return model response
     def run_inference(self, conversation):
+        tools: list[ToolParam] = [
+            {
+                "name": tool.name,
+                "description": tool.description,
+                "input_schema": tool.input_schema,
+            }
+            for tool in self.tools
+        ]
         return self.client.messages.create(
-            model='claude-haiku-4-5', max_tokens=1024, messages=conversation        
+            model="claude-haiku-4-5",
+            max_tokens=1024,
+            messages=conversation,
+            tools=tools,
         )
+
 
 def main():
     claude_agent = ClaudeAgent()
     claude_agent.run()
+
 
 if __name__ == "__main__":
     main()
